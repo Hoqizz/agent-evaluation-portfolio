@@ -24,7 +24,7 @@ body {
     linear-gradient(90deg, rgba(28, 37, 66, .025) 1px, transparent 1px);
   background-size: 28px 28px;
   color: var(--ink);
-  font-family: var(--font-geist-sans), "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-family: Inter, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
   font-size: 15px;
 }
 body.modal-open { overflow: hidden; }
@@ -125,7 +125,7 @@ main { overflow: clip; }
 .code-card header span, .badcase-card header span, .prompt-card span { font-size: 11px; font-weight: 720; letter-spacing: .07em; }
 .code-card button, .badcase-card button { border: 0; background: transparent; color: inherit; cursor: pointer; font-size: 11px; opacity: .74; }
 .code-card button:hover, .badcase-card button:hover { opacity: 1; }
-.code-card pre { height: 596px; margin: 0; padding: 24px; overflow: auto; white-space: pre-wrap; color: #d8dce7; font: 12px/1.78 var(--font-geist-mono), monospace; }
+.code-card pre { height: 596px; margin: 0; padding: 24px; overflow: auto; white-space: pre-wrap; color: #d8dce7; font: 12px/1.78 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
 .prompt-card { padding: 28px 30px; border-bottom: 1px solid var(--line); background: rgba(201,156,174,.19); }
 .prompt-card span { color: var(--blue); }
 .prompt-card p { margin: 15px 0 0; color: var(--navy); font-size: 16px; font-weight: 620; line-height: 1.7; }
@@ -210,7 +210,7 @@ main { overflow: clip; }
 .rubric-list b.positive, .rubric-list b.negative { color: var(--navy); }
 .rubric-list p { margin: 0; font-size: 12px; line-height: 1.6; }
 .rubric-list p span { display: block; margin-top: 5px; color: var(--muted); font-size: 11px; }
-.json-panel { max-height: 440px; margin: 0; padding: 22px; overflow: auto; background: var(--navy); color: #e4e4ec; white-space: pre-wrap; font: 12px/1.7 var(--font-geist-mono), monospace; }
+.json-panel { max-height: 440px; margin: 0; padding: 22px; overflow: auto; background: var(--navy); color: #e4e4ec; white-space: pre-wrap; font: 12px/1.7 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
 
 .design-value { border-bottom: 1px solid var(--line); }
 .tension-grid { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line-strong); border-bottom: 1px solid var(--line-strong); }
@@ -257,7 +257,7 @@ main { overflow: clip; }
 .modal-body h2 { margin: 0 0 28px; color: var(--navy); font-size: 32px; }
 .modal-body h3 { margin: 40px 0 18px; color: var(--navy); font-size: 21px; }
 .modal-body > p, .reference-full p { max-width: 900px; color: #535462; font-size: 14px; line-height: 1.8; }
-.modal-body pre { margin: 0; padding: 26px; overflow: auto; background: var(--navy); color: #e1e2ea; white-space: pre-wrap; font: 12px/1.75 var(--font-geist-mono), monospace; }
+.modal-body pre { margin: 0; padding: 26px; overflow: auto; background: var(--navy); color: #e1e2ea; white-space: pre-wrap; font: 12px/1.75 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
 .modal-body .table-wrap { margin: 20px 0 34px; }
 .modal-body .table-wrap table { min-width: 1100px; }
 .modal-body .table-wrap td { min-width: 160px; }

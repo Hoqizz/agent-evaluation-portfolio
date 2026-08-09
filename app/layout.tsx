@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
-const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
-
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.GITHUB_PAGES === "true" ? "https://hoqizz.github.io/agent-evaluation-portfolio/" : "https://fact-aware-badcase-portfolio.zyzouye900770.chatgpt.site/"),
   title: "真实性与时效性 Badcase 自动评测｜案例作品集",
   description: "从线上 Badcase 出发，经事实级诊断、参考回复综合与分层事实映射，自动生成理想回复和加权评分标准。",
   icons: { icon: "/favicon.svg" },
@@ -23,5 +20,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="zh-CN"><body className={`${geistSans.variable} ${geistMono.variable}`}>{children}</body></html>;
+  return <html lang="zh-CN"><body>{children}</body></html>;
 }

@@ -1,100 +1,124 @@
-# vinext-starter
+# 大模型真实准确性 Badcase 评测与训练数据生产 Agent
 
-A clean full-stack starter running on
-[vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and
-Drizzle support.
+一个面向大模型真实性与时效性问题的案例作品集，展示如何从线上 Badcase 出发，完成事实核验、参考回复综合，并生成理想回复、加权评分标准和结构化训练数据。
 
-## Prerequisites
+## 在线查看
 
-- Node.js `>=22.13.0`
+- 当前预览：[Sites 在线版本](https://fact-aware-badcase-portfolio.zyzouye900770.chatgpt.site)
+- GitHub Pages：仓库首次发布后可通过 `https://hoqizz.github.io/agent-evaluation-portfolio/` 访问
 
-## Quick Start
+## 项目背景
+
+大模型可以生成结构完整、表达流畅的回复，但回答中仍可能混入错误数据、过期信息、统计口径混用、关键遗漏和无依据推断。
+
+这类问题的难点在于：一条回复通常不是全部错误，而是正确事实与错误事实混杂。如果只对整段回复给出一个总分，就很难定位具体问题，也难以将分析结果转化为稳定的评测标准和训练数据。
+
+本项目将回复拆到事实层级逐项核验，并根据事实在答案结构中的角色，决定其是否进入评分标准以及对应权重。
+
+## 四阶段链路
+
+| 阶段 | 处理内容 | 主要产物 |
+|---|---|---|
+| 01 案例准入 | 判断案例是否自包含、可核验、有纠正价值并符合内容安全要求 | 准入结论 |
+| 02 事实诊断 | 从完整历史对话恢复用户意图，逐项核验线上回复中的事实 | 用户意图约束、事实核验表 |
+| 03 参考回复综合 | 核验两路参考回复，合并、去重并查漏补缺 | 三版本事实总表、最终事实口径 |
+| 04 评测产物生成 | 将核验后的事实映射为可训练、可评测的产物 | 理想回复、加权评分标准、结构化数据 |
+
+## 核心设计
+
+### 分层事实映射
+
+事实角色不是判断一条信息是真是假，而是判断它在答案结构中承担什么作用：
+
+- **主需事实**：用户问题的答案本体，优质回复必须覆盖。
+- **支撑论据**：用于支撑结论、解释原因、说明口径或限定证据边界。
+- **举例信息**：模型为了说明观点而主动增加的例子。
+- **背景信息**：帮助理解上下文，但通常不属于主结论或关键证据。
+
+### 加权评分标准
+
+每条事实根据两个问题选择评分方式和权重：
+
+1. 优质回复是否应该主动覆盖？
+2. 如果写错，会造成什么后果？
+
+最终可被消费为：
+
+- **正向标准**：奖励优质回复应该主动覆盖的内容。
+- **负向雷区**：不要求主动覆盖，但一旦主动扩展并写错，需要按后果扣分。
+- **不写入**：不要求覆盖，且错误后果不典型、不严重或不可泛化。
+
+## 项目结果
+
+- **Agent 实现框架**：LangGraph
+- **自动化生产**：形成从线上 Badcase 到评测产物和训练数据的端到端链路
+- **周均产量**：1 万+ 条 SFT / RL 数据
+- **应用效果**：Seed2.1 Pro 真实准确性 RL 分数由 64.1 提升至 69.6
+
+## 技术栈
+
+- Next.js / React / TypeScript
+- Vinext / Cloudflare Workers
+- GitHub Actions / GitHub Pages
+
+## 本地运行
+
+需要 Node.js 22.13 或更高版本。
 
 ```bash
 npm install
 npm run dev
+```
+
+本地开发服务启动后，根据终端提示打开对应地址。
+
+## 构建
+
+常规站点构建：
+
+```bash
 npm run build
 ```
 
-This starter does not use `wrangler.jsonc`.
+如需继续发布到当前 Sites 环境，可运行：
 
-## Included Shape
-
-- edit site code under `app/`
-- `.openai/hosting.json` declares optional Sites D1 and R2 bindings
-- `vite.config.ts` simulates declared bindings for local development
-- `db/schema.ts` starts intentionally empty
-- `examples/d1/` contains an optional D1 example surface
-- `drizzle.config.ts` supports local migration generation when needed
-
-## Workspace Auth Headers
-
-Signed-in visitors receive both `oai-authenticated-user-id` and `oai-authenticated-user-email`. Private Sites require every visitor to sign in; public Sites may also have anonymous visitors, for whom neither header is present.
-
-The user ID is stable for the same user on the same Site and different across Sites. Email and name are intended for display or contact purposes.
-
-SIWC-authenticated workspace sites may also receive
-`oai-authenticated-user-full-name` when the user's SIWC profile has a non-empty
-`name` claim. The full-name value is percent-encoded UTF-8 and is accompanied by
-`oai-authenticated-user-full-name-encoding: percent-encoded-utf-8`.
-
-Treat the full name as optional and fall back to email when it is absent:
-
-```tsx
-import { headers } from "next/headers";
-
-export default async function Home() {
-  const requestHeaders = await headers();
-  const userId = requestHeaders.get("oai-authenticated-user-id");
-  const email = requestHeaders.get("oai-authenticated-user-email");
-  const encodedFullName = requestHeaders.get("oai-authenticated-user-full-name");
-  const fullName =
-    encodedFullName &&
-    requestHeaders.get("oai-authenticated-user-full-name-encoding") ===
-      "percent-encoded-utf-8"
-      ? decodeURIComponent(encodedFullName)
-      : null;
-
-  const displayName = fullName ?? email;
-  // ...
-}
+```bash
+npm run build:sites
 ```
 
-## Optional Dispatch-Owned ChatGPT Sign-In
+GitHub Pages 静态构建：
 
-Import the ready-to-use helpers from `app/chatgpt-auth.ts` when the site needs
-optional or required ChatGPT sign-in:
+```bash
+npm run build:pages
+```
 
-- Use `getChatGPTUser()` for optional signed-in UI.
-- Use `requireChatGPTUser(returnTo)` for server-rendered pages that should send
-  anonymous visitors through Sign in with ChatGPT.
-- Use `chatGPTSignInPath(returnTo)` and `chatGPTSignOutPath(returnTo)` for
-  browser links or actions.
-- Pass a same-origin relative `returnTo` path for the destination after sign-in
-  or sign-out. The helper validates and safely encodes it.
-- Mark protected pages with `export const dynamic = "force-dynamic"` because
-  they depend on per-request identity headers.
+静态文件会输出到 `out/` 目录。
 
-Dispatch owns `/signin-with-chatgpt`, `/signout-with-chatgpt`, `/callback`, the
-OAuth cookies, and identity header injection. Do not implement app routes for
-those reserved paths. Routes that do not import and call the helper remain
-anonymous-compatible.
+## 发布方式
 
-SIWC establishes identity only; it does not prove workspace membership. Use the
-Sites hosting platform's access policy controls for workspace-wide restrictions,
-or enforce explicit server-side membership or allowlist checks.
+仓库中的 `.github/workflows/pages.yml` 会在 `main` 分支更新后：
 
-Use SIWC for account pages, user-specific dashboards, saved records, and write
-actions tied to the current ChatGPT user. Leave public content anonymous.
+1. 安装依赖；
+2. 生成 GitHub Pages 静态文件；
+3. 上传构建产物；
+4. 发布至 GitHub Pages。
 
-## Useful Commands
+## 数据说明
 
-- `npm run dev`: start local development
-- `npm run build`: verify the vinext build output
-- `npm test`: build the starter and verify its rendered loading skeleton
-- `npm run db:generate`: generate Drizzle migrations after schema changes
+页面中的对话与线上回复为展示评测链路而合成；公司财务数据、披露日期和计算结果来自公开财报。案例用于说明“事实本身可能真实，但时间、口径或使用方式错误”的高迷惑性 Badcase。
 
-## Learn More
+## 仓库结构
 
-- [vinext Documentation](https://github.com/cloudflare/vinext)
-- [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
+```text
+app/                    页面与样式
+public/                 图片与静态资源
+.github/workflows/      GitHub Pages 自动发布流程
+tests/                  渲染结果检查
+next.config.ts          常规构建与 Pages 构建配置
+```
+
+## 维护建议
+
+- GitHub 仓库作为源码和版本记录的长期存档；
+- GitHub Pages 或个人域名作为对外访问入口；
+- 重要文案先在内容草稿中确认，再同步到网页，避免展示结构和内容逻辑相互干扰。
