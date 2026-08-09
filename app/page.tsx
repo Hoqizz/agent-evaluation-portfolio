@@ -232,17 +232,16 @@ export default function Home() {
   return (
     <main id="top">
       <nav className="topbar" aria-label="页面导航">
-        <a className="brand" href="#top"><span>CASE 01</span><b>大模型事实性评测</b></a>
         <div className="navlinks"><a href="#background">背景</a><a href="#overview">项目概览</a><a href="#case-start">线上案例</a><a href="#workflow">四阶段</a><a href="#design-value">核心设计</a><a href="#impact">项目成效</a></div>
       </nav>
 
       <header className="hero section-shell">
         <div className="hero-copy">
-          <h1>大模型事实性 Badcase<br/>评测与训练数据生产</h1>
+          <h1>大模型真实准确性Badcase<br/>评测与训练数据生产Agent</h1>
           <p className="lead">针对线上回复中的真实性与时效性问题，搭建自动化评测链路，完成事实核验、参考回复综合，并生成理想回复与加权评分标准。</p>
           <a className="primary-link" href="#background">查看项目内容 <span>↓</span></a>
         </div>
-        <aside className="hero-panel"><p>项目摘要</p><dl><div><dt>实现框架</dt><dd>LangGraph</dd></div><div><dt>周均生产</dt><dd>1 万+ 条 SFT / RL 数据</dd></div><div><dt>应用效果</dt><dd>Seed2.1 Pro：64.1 → 69.6</dd></div></dl></aside>
+        <aside className="hero-panel"><p>项目摘要</p><dl><div><dt>Agent实现框架</dt><dd>LangGraph</dd></div><div><dt>周均生产</dt><dd>1 万+ 条 SFT / RL 数据</dd></div><div><dt>应用效果</dt><dd>Seed2.1 Pro 真实准确性RL分数提升：64.1 → 69.6</dd></div></dl></aside>
       </header>
 
       <section className="problem" id="background">
@@ -259,14 +258,12 @@ export default function Home() {
 
       <section className="case-start section-shell" id="case-start">
         <div className="section-head case-heading"><div><p className="section-index">03 · 线上案例</p></div></div>
-        <details className="case-fold">
-          <summary><div><span>案例内容</span><strong>阿里巴巴与 PDD Holdings 现金规模比较</strong><p>包含完整历史对话、用户最新 Prompt 与线上回复</p></div><b><span>展开案例</span><i>↓</i></b></summary>
-          <div className="case-details">
-            <article className="code-card history-card"><header><span>历史对话 · 6 轮</span><button onClick={() => open("history")}>完整查看 ↗</button></header><pre>{JSON.stringify(history, null, 2)}</pre></article>
-            <article className="prompt-card"><span>用户最新 Prompt</span><p>{prompt}</p></article>
-            <article className="badcase-card"><header><span>线上回复 · Badcase</span><button onClick={() => open("badcase")}>完整查看 ↗</button></header><div className="scroll-copy"><p>{badcaseParagraphs[0]}</p><DataTable compact headers={["公司", "统计期", "现金", "投资", "合计"]} rows={badcaseRows}/><p>{badcaseParagraphs[3]}</p><p>{badcaseParagraphs[4]}</p></div></article>
-          </div>
-        </details>
+        <div className="case-title-row"><span>线上案例</span><strong>阿里巴巴与 PDD Holdings 现金规模比较</strong></div>
+        <div className="case-details standalone">
+          <article className="code-card history-card"><header><span>历史对话 · 6 轮</span><button onClick={() => open("history")}>完整查看 ↗</button></header><pre>{JSON.stringify(history, null, 2)}</pre></article>
+          <article className="prompt-card"><span>用户最新 Prompt</span><p>{prompt}</p></article>
+          <article className="badcase-card"><header><span>线上回复 · Badcase</span><button onClick={() => open("badcase")}>完整查看 ↗</button></header><div className="scroll-copy"><p>{badcaseParagraphs[0]}</p><DataTable compact headers={["公司", "统计期", "现金", "投资", "合计"]} rows={badcaseRows}/><p>{badcaseParagraphs[3]}</p><p>{badcaseParagraphs[4]}</p></div></article>
+        </div>
       </section>
 
       <section className="workflow" id="workflow">
@@ -285,6 +282,7 @@ export default function Home() {
             <div className="case-output-card stage-two">
               <div className="output-label">用户意图理解</div>
               <p className="intent-conclusion">用户要求以 2025 年 5 月 28 日为截点，只比较两家公司最新财报中的“现金及现金等价物 + 短期投资”，统一换算为人民币亿元，并给出金额、差额和高低结论；不应据此扩展判断偿债或投资能力。</p>
+              <details className="intent-fold"><summary>展开查看用户意图理解明细 <span>＋</span></summary><DataTable headers={["意图维度", "从历史对话恢复出的用户要求"]} rows={intentRows}/></details>
               <div className="diagnosis-divider"><span>事实核查</span><b>12 个事实点</b></div>
               <p className="diagnosis-summary">局部事实真实，但真实数字被放进错误的时间标签和比较口径中，再由正确算术生成被显著放大的主结论。</p>
               <DiagnosisTable/>

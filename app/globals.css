@@ -419,3 +419,23 @@ body { font-size: 16px; }
   .case-fold summary > b span { display: none; }
   .matrix-section { margin-top: 58px; }
 }
+
+/* v4: direct case display and expandable intent details */
+.topbar { justify-content: flex-end; }
+.case-title-row { display: flex; align-items: baseline; gap: 18px; padding: 18px 22px; border: 1px solid var(--line-strong); border-bottom: 0; background: rgba(250,245,247,.66); }
+.case-title-row span { color: var(--blue); font-size: 13px; font-weight: 750; }
+.case-title-row strong { color: var(--navy); font-size: 17px; }
+.case-details.standalone { border: 1px solid var(--line-strong); }
+.intent-fold { margin-top: 14px; border: 1px solid var(--line); background: rgba(250,245,247,.45); }
+.intent-fold summary { display: flex; align-items: center; justify-content: space-between; padding: 14px 17px; color: var(--navy); cursor: pointer; font-size: 13px; font-weight: 700; list-style: none; }
+.intent-fold summary::-webkit-details-marker { display: none; }
+.intent-fold summary span { color: var(--blue); font-size: 16px; }
+.intent-fold[open] summary { border-bottom: 1px solid var(--line); }
+.intent-fold[open] summary span { transform: rotate(45deg); }
+.intent-fold .table-wrap { border: 0; }
+.intent-fold .table-wrap table { min-width: 680px; }
+.intent-fold .table-wrap td:first-child { width: 120px; min-width: 120px; color: var(--navy); font-weight: 700; }
+
+@media (max-width: 640px) {
+  .case-title-row { align-items: flex-start; flex-direction: column; gap: 8px; }
+}
