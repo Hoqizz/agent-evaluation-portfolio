@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-type ModalKey = "history" | "badcase" | "stage1" | "stage2" | "stage3" | "facts" | "stage4" | null;
+type ModalKey = "overview" | "history" | "badcase" | "stage1" | "stage2" | "stage3" | "facts" | "stage4" | null;
 type AssetKey = "answer" | "weighted" | "structured";
 
 const history = [
@@ -135,6 +135,20 @@ function DataTable({ headers, rows, compact = false }: { headers: string[]; rows
   );
 }
 
+function FlowDiagram({ large = false }: { large?: boolean }) {
+  return (
+    <div className={`flow-diagram ${large ? "is-large" : ""}`} aria-label="项目流程图">
+      <div className="flow-input"><small>输入</small><strong>线上 Badcase</strong><span>历史对话 · 最新 Prompt · 线上回复</span></div>
+      <i>→</i>
+      {["案例准入", "事实诊断", "参考回复综合", "评测产物生成"].map((label, index) => (
+        <div className="flow-step" key={label}><b>0{index + 1}</b><strong>{label}</strong></div>
+      ))}
+      <i>→</i>
+      <div className="flow-output"><small>输出</small><strong>三类评测资产</strong><span>理想回复 · 加权评分标准 · 结构化训练数据</span></div>
+    </div>
+  );
+}
+
 function FullModal({ modal, onClose }: { modal: ModalKey; onClose: () => void }) {
   useEffect(() => {
     if (!modal) return;
@@ -150,6 +164,7 @@ function FullModal({ modal, onClose }: { modal: ModalKey; onClose: () => void })
       <section className="modal" role="dialog" aria-modal="true" aria-label="完整内容">
         <header><span>完整内容</span><button onClick={onClose} aria-label="关闭完整内容">关闭 ×</button></header>
         <div className="modal-body">
+          {modal === "overview" && <><h2>项目流程</h2><p>从一条线上 Badcase 出发，沿同一条链路完成准入、诊断、综合与产物生成。</p><FlowDiagram large/></>}
           {modal === "history" && <><h2>历史对话</h2><pre>{JSON.stringify(history, null, 2)}</pre></>}
           {modal === "badcase" && <><h2>线上错误回复</h2><p>截至 2025 年 5 月 28 日，两家公司最新可比数据如下：</p>{badcaseParagraphs.slice(0, 2).map((p) => <p key={p}>{p}</p>)}<DataTable headers={["公司", "统计期", "现金及现金等价物", "短期投资 / 其他流动性投资", "合计"]} rows={badcaseRows}/>{badcaseParagraphs.slice(2).map((p) => <p key={p}>{p}</p>)}</>}
           {modal === "stage1" && <><h2>阶段一：案例准入</h2><DataTable headers={["准入条件", "判断", "原因"]} rows={stageOneRows}/><p className="modal-conclusion">准入结论：进入错误案例诊断和后续数据生产。</p></>}
@@ -185,52 +200,47 @@ export default function Home() {
   return (
     <main id="top">
       <nav className="topbar" aria-label="页面导航">
-        <a className="brand" href="#top"><span>真实性评测</span><b>案例作品集</b></a>
-        <div className="navlinks"><a href="#case-start">案例起点</a><a href="#workflow">四阶段</a><a href="#design-value">设计亮点</a><a href="#impact">项目成效</a></div>
+        <a className="brand" href="#top"><span>CASE 01</span><b>大模型事实性评测</b></a>
+        <div className="navlinks"><a href="#background">背景</a><a href="#overview">项目概览</a><a href="#case-start">线上案例</a><a href="#workflow">四阶段</a><a href="#design-value">核心设计</a><a href="#impact">项目成效</a></div>
       </nav>
 
       <header className="hero section-shell">
         <div className="hero-copy">
-          <p className="eyebrow">AI 产品 · 模型评测 · 工作流智能体</p>
-          <h1>把一次<br/><em>真假混杂</em>的回答，<br/>变成可训练的评测资产</h1>
-          <p className="lead">针对线上回复中的事实错误与信息过时问题，基于 LangGraph 搭建自动评测链路，从案例准入、逐事实诊断、参考回复综合到理想回复与评分标准生成，形成“检索—核验—归因—回流”的闭环。</p>
-          <a className="primary-link" href="#case-start">从合成案例开始 <span>↓</span></a>
+          <p className="eyebrow">AI 产品 · 模型评测</p>
+          <h1>大模型事实性 Badcase<br/>评测与训练数据生产</h1>
+          <p className="lead">针对线上回复中的真实性与时效性问题，搭建自动化评测链路，完成事实核验、参考回复综合，并生成理想回复与加权评分标准。</p>
+          <a className="primary-link" href="#background">查看项目内容 <span>↓</span></a>
         </div>
-        <aside className="hero-panel">
-          <p>项目一览</p>
-          <div className="metric"><strong>04</strong><span>核心阶段<br/>单一可复现链路</span></div>
-          <div className="metric"><strong>1 万+</strong><span>周均自动化交付<br/>SFT / RL 样本</span></div>
-          <div className="metric"><strong>64.1 → 69.6</strong><span>Seed2.1 Pro<br/>真实性指标</span></div>
-          <div className="tech-note"><span>实现框架</span>LangGraph 工作流编排</div>
-        </aside>
+        <aside className="hero-panel"><p>项目摘要</p><dl><div><dt>实现框架</dt><dd>LangGraph</dd></div><div><dt>周均生产</dt><dd>1 万+ 条 SFT / RL 数据</dd></div><div><dt>应用效果</dt><dd>Seed2.1 Pro：64.1 → 69.6</dd></div></dl></aside>
       </header>
 
-      <section className="problem dark-section">
+      <section className="problem" id="background">
         <div className="section-shell problem-grid">
-          <div><p className="section-index">00 · 为什么要做</p><h2>专业感，可能来自<br/>真实数字的错误组合。</h2></div>
-          <div className="problem-copy"><p>线上回答并不总是“全部错误”。更危险的情况是：数字真实、算术正确、表达完整，但统计期、字段口径或事实使用方式错了。</p><p>只给整段回复一个分数，会掩盖这种真假混杂的结构。要把错误转成训练数据，必须知道每个事实是真是假、承担什么角色，以及它最终应该怎样进入评分标准。</p></div>
+          <div><p className="section-index">01 · 背景</p><h2>表达流畅，<br/>不代表事实准确</h2></div>
+          <div className="problem-copy"><p>大模型已经能够生成结构完整、表达流畅的回复，但在真实使用中仍可能引用错误数据、沿用过期信息、混淆统计口径，或基于有限证据得出过度结论。</p><p>真实性与时效性问题往往隐藏在看似可信的表达中。一条 Badcase 也很少是整段全部错误，而是正确、错误、过期和遗漏信息混在一起。</p><p>因此，需要把回复拆到事实层级逐项核验，定位模型问题，形成可执行的评分标准，并进一步生成 SFT / RL 训练数据。</p></div>
         </div>
+        <div className="section-shell issue-list" aria-label="真实性问题分类"><div><span>01</span><b>事实错误</b><p>数据、主体或结论与可靠来源不一致</p></div><div><span>02</span><b>信息过期</b><p>使用旧数据作为当前信息回答</p></div><div><span>03</span><b>口径混用</b><p>把定义不同的数据放在一起比较</p></div><div><span>04</span><b>关键遗漏</b><p>缺少回答问题所必需的事实</p></div><div><span>05</span><b>无依据推断</b><p>结论超出已有事实的支持范围</p></div></div>
+      </section>
+
+      <section className="overview section-shell" id="overview">
+        <div className="section-head"><div><p className="section-index">02 · 项目概览</p><h2>从线上案例到评测资产</h2></div><p>以一条线上 Badcase 为输入，经过四个阶段，输出理想回复、加权评分标准和结构化训练数据。</p></div>
+        <button className="flow-preview" onClick={() => open("overview")} aria-label="放大查看项目流程图"><FlowDiagram/><span className="enlarge-hint">点击放大查看 ↗</span></button>
       </section>
 
       <section className="case-start section-shell" id="case-start">
-        <div className="section-head"><div><p className="section-index">案例起点</p><h2>先看到一份<br/>“很像那么回事”的回答</h2></div><p>历史对话保留完整内容，通过内部滚动阅读；终轮问题与线上错误回复并排呈现。此时不提前公布意图理解结论。</p></div>
-        <div className="case-grid">
-          <article className="code-card history-card">
-            <header><span>历史对话 · 6 轮</span><button onClick={() => open("history")}>完整查看 ↗</button></header>
-            <pre>{JSON.stringify(history, null, 2)}</pre>
-          </article>
-          <div className="case-right">
-            <article className="prompt-card"><span>终轮问题</span><p>{prompt}</p></article>
-            <article className="badcase-card">
-              <header><span>线上回复 · 错误案例</span><button onClick={() => open("badcase")}>完整查看 ↗</button></header>
-              <div className="scroll-copy"><p>{badcaseParagraphs[0]}</p><DataTable compact headers={["公司", "统计期", "现金", "投资", "合计"]} rows={badcaseRows}/><p>{badcaseParagraphs[3]}</p><p>{badcaseParagraphs[4]}</p></div>
-            </article>
+        <div className="section-head"><div><p className="section-index">03 · 线上案例</p><h2>比较两家公司的现金及短期投资规模</h2></div><p>用户要求使用最新披露数据和统一口径。线上回复结构完整，但数据时点与统计口径并不一致。</p></div>
+        <details className="case-fold">
+          <summary><div><span>线上案例</span><strong>阿里巴巴与 PDD Holdings 现金规模比较</strong><p>展开查看历史对话、用户最新 Prompt 与线上回复</p></div><b>展开 ＋</b></summary>
+          <div className="case-details">
+            <article className="code-card history-card"><header><span>历史对话 · 6 轮</span><button onClick={() => open("history")}>完整查看 ↗</button></header><pre>{JSON.stringify(history, null, 2)}</pre></article>
+            <article className="prompt-card"><span>用户最新 Prompt</span><p>{prompt}</p></article>
+            <article className="badcase-card"><header><span>线上回复 · Badcase</span><button onClick={() => open("badcase")}>完整查看 ↗</button></header><div className="scroll-copy"><p>{badcaseParagraphs[0]}</p><DataTable compact headers={["公司", "统计期", "现金", "投资", "合计"]} rows={badcaseRows}/><p>{badcaseParagraphs[3]}</p><p>{badcaseParagraphs[4]}</p></div></article>
           </div>
-        </div>
+        </details>
       </section>
 
-      <section className="workflow dark-section" id="workflow">
-        <div className="section-shell workflow-intro"><p className="section-index">全链路 × 同一案例</p><h2>左侧是框架，右侧是案例。<br/>中间的数字，把两者一一对应。</h2><p>向下滚动时，当前节点亮起，框架卡片进入强调状态，右侧产物轻微出现。长表格和完整回复不被抽样，而是进入完整视图。</p></div>
+      <section className="workflow" id="workflow">
+        <div className="section-shell workflow-intro"><p className="section-index">04 · 四阶段评测链路</p><h2>框架与案例并行推进</h2><p>左侧说明每个阶段做什么，右侧展示同一案例在该阶段得到的结果。完整长表与参考回复保留在展开视图中。</p></div>
 
         <div className="section-shell process">
           <article className={`process-stage ${activeStage === 1 ? "is-active" : ""}`} data-stage="1">
@@ -240,7 +250,7 @@ export default function Home() {
           </article>
 
           <article className={`process-stage ${activeStage === 2 ? "is-active" : ""}`} data-stage="2">
-            <div className="framework-card"><small>阶段二</small><h3>逐事实诊断</h3><p>先从多轮对话恢复真实意图，再逐个判断线上回复中的事实。</p><div className="design-note"><b>设计考量</b>事实核查不能从终轮问题的孤立关键词开始；口径、时间和回答边界都来自完整历史对话。</div></div>
+            <div className="framework-card"><small>阶段二</small><h3>事实诊断</h3><p>先从多轮对话恢复真实意图，再逐个判断线上回复中的事实。</p><div className="design-note"><b>设计考量</b>事实核查不能从终轮问题的孤立关键词开始；口径、时间和回答边界都来自完整历史对话。</div></div>
             <div className="stage-spine"><span>02</span></div>
             <div className="case-output-card stage-two">
               <div className="output-label">4.1 用户意图理解</div>
@@ -264,7 +274,7 @@ export default function Home() {
           </article>
 
           <article className={`process-stage ${activeStage === 4 ? "is-active" : ""}`} data-stage="4">
-            <div className="framework-card"><small>阶段四</small><h3>评估资产生成</h3><p>把核验后的事实全集转化为理想回复、加权评分标准和结构化数据。</p><div className="design-note"><b>设计考量</b>事实角色决定是否必须覆盖、应正向奖励还是负向约束，以及权重应该多高。</div></div>
+            <div className="framework-card"><small>阶段四</small><h3>评测产物生成</h3><p>把核验后的事实全集转化为理想回复、加权评分标准和结构化数据。</p><div className="design-note"><b>设计考量</b>事实角色决定是否必须覆盖、应正向奖励还是负向约束，以及权重应该多高。</div></div>
             <div className="stage-spine last"><span>04</span></div>
             <div className="case-output-card assets-card">
               <div className="asset-tabs" role="tablist" aria-label="评估资产切换"><button aria-selected={asset === "answer"} onClick={() => setAsset("answer")}>理想回复</button><button aria-selected={asset === "weighted"} onClick={() => setAsset("weighted")}>加权评分标准</button><button aria-selected={asset === "structured"} onClick={() => setAsset("structured")}>结构化标准</button></div>
@@ -279,7 +289,7 @@ export default function Home() {
 
       <section className="design-value" id="design-value">
         <div className="section-shell">
-          <div className="section-head"><div><p className="section-index">链路的核心设计价值</p><h2>具体，但不过拟合。<br/>严格，但不奖励冗余。</h2></div><p>四阶段已经展示“产生了什么”。这里不重复事实总表和评分标准，而解释为什么要用分层事实映射，以及它解决了哪些取舍难题。</p></div>
+          <div className="section-head"><div><p className="section-index">05 · 链路的核心设计</p><h2>分层事实映射与加权评分标准</h2></div><p>四阶段说明完整链路如何运行；这一部分只解释事实角色如何影响覆盖要求、评分方式与权重。</p></div>
           <div className="tension-grid"><article><span>01</span><h3>通用性 vs. 可执行性</h3><p>只写“准确、完整、清晰”无法约束关键数字；把所有细节写入又会过拟合单个回复。</p></article><article><span>02</span><h3>事实正确 vs. 必须覆盖</h3><p>一条事实即使正确，也不代表优质回复必须主动写出；答案本体和背景补充不能同权。</p></article><article><span>03</span><h3>当前错误 vs. 潜在后果</h3><p>权重不只看线上回复这次是否答错，还要看优质回复是否应覆盖，以及答错会造成什么后果。</p></article></div>
 
           <div className="mapping-lab">
@@ -294,8 +304,8 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="impact dark-section" id="impact">
-        <div className="section-shell"><div className="section-head light"><div><p className="section-index">项目成效</p><h2>从单个错误案例，<br/>到稳定的数据生产闭环</h2></div><p>方法价值最终落到可规模化生产和真实指标提升，而不是停留在一份分析报告。</p></div><div className="impact-grid"><article><span>自动化生产</span><strong>端到端</strong><p>从错误案例检索、核验、归因到评测资产生成与结果回流。</p></article><article><span>周均产量</span><strong>1 万+</strong><p>自动化生产并交付 SFT / RL 样本。</p></article><article><span>提分效果</span><strong>64.1 → 69.6</strong><p>Seed2.1 Pro 真实性指标相比 RL 起点的提升。</p></article></div></div>
+      <section className="impact" id="impact">
+        <div className="section-shell"><div className="section-head light"><div><p className="section-index">06 · 项目成效</p><h2>规模化生产与实际提分</h2></div><p>链路完成从线上 Badcase 到评测产物和训练数据的自动化生产。</p></div><div className="impact-grid"><article><span>自动化生产</span><strong>端到端</strong><p>从错误案例检索、核验、归因到评测资产生成与结果回流。</p></article><article><span>周均产量</span><strong>1 万+</strong><p>自动化生产并交付 SFT / RL 样本。</p></article><article><span>提分效果</span><strong>64.1 → 69.6</strong><p>Seed2.1 Pro 真实性指标相比 RL 起点的提升。</p></article></div></div>
       </section>
 
       <footer className="footer"><div className="section-shell"><span>真实性与时效性错误案例自动评测</span><a href="#top">回到顶部 ↑</a></div></footer>
