@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 type ModalKey = "overview" | "history" | "badcase" | "stage1" | "stage2" | "stage3" | "facts" | "stage4" | null;
 type AssetKey = "answer" | "weighted" | "structured";
@@ -62,6 +62,10 @@ const diagnosisRows = [
   ["阿里承受扩张与行业波动的能力更强", "举例信息", "无法推出", "缺少资本开支、负债和现金流等信息。"],
 ];
 
+const alibabaEvidence = "https://data.alibabagroup.com/ecms-files/1532295521/83f92d1d-d36f-4ecd-a56c-2d3c59cb251a/Alibaba%20Group%20Announces%20March%20Quarter%202025%20and%20Fiscal%20Year%202025%20Results.pdf";
+const pddEvidence = "https://www.sec.gov/Archives/edgar/data/1737806/000110465925053013/tm2516198d1_ex99-1.htm";
+const diagnosisEvidence = [alibabaEvidence, alibabaEvidence, alibabaEvidence, alibabaEvidence, pddEvidence, pddEvidence, pddEvidence, pddEvidence, alibabaEvidence, alibabaEvidence, null, null];
+
 const referenceARows = [
   ["两家公司最新统计期均为 2025-03-31", "正确"],
   ["阿里合计 3,743.13 亿元", "正确"],
@@ -114,6 +118,25 @@ const roleMap = [
   { role: "背景信息", cover: "通常不要求", policy: "负向 / 不写入", weight: "−1…−5", note: "只有错误会改变问题前提或风险边界时才进入标准。" },
 ];
 
+const factRoleRows = [
+  ["主需事实", "用户问题的答案本体，或回答用户问题必须覆盖的关键事实。", "如果错误或遗漏，答案基本没有满足用户需求。", "两家公司的最新统计期、两项资产数值、合计、差额与高低结论。"],
+  ["支撑论据", "不是答案本体，但用于支撑主结论、解释原因、明确计算口径或证据边界。", "能够增强结论可信度，但不是所有合格答案都必须包含。", "说明阿里 5,971.32 亿元扩展指标包含其他 treasury investments，不能直接用于本题。"],
+  ["举例信息", "模型为了说明观点而额外举出的例子。", "不是用户明确询问的对象，也不是核心结论必需。", "回复额外列举云计算、AI 和电商投入场景。"],
+  ["背景信息", "帮助理解上下文的补充事实，通常不是主结论或关键证据。", "只有错误会改变问题前提、适用边界或风险判断时才需要约束。", "扩展流动性指标的同比变化，以及对偿债能力的额外讨论。"],
+];
+
+const judgmentMatrixRows = [
+  ["主需事实", "用户问题的答案本体，或必须覆盖的关键事实。", "正向必要标准", "4 或 5", "始终使用正向权重。若原回复错误、遗漏、偏差明显，或该事实决定核心结论，取 5；原回复已正确且风险较低时取 4。"],
+  ["支撑论据", "用于支撑主结论、解释原因、明确计算口径或证据边界。", "正向重要 / 正向可选 / 负向雷区 / 不写入", "3、2、1、-1 至 -3，或无", "优质回复应主动覆盖或能明显增强解释质量时取正向权重；不要求主动覆盖，但写错会误导理解或污染主结论时设负向权重；仅为冗余补充时不写入。"],
+  ["举例信息", "模型为说明观点额外举出的例子，不是用户明确询问对象。", "正向可选 / 负向雷区 / 不写入", "1、-1 至 -5，或无", "例子正确且明显帮助理解时通常只取 1。额外举例且错误时，按后果取负分：局部理解偏差 -1；明显误导 -2 至 -3；诱导错误行为或涉及高风险后果 -4 至 -5，并考虑一票否决候选。普通、不可泛化的例子不写入。"],
+  ["背景信息", "帮助理解上下文的补充事实，通常不是主结论或关键证据。", "负向雷区 / 不写入", "-1 至 -5，或无", "优质回复通常不需要主动覆盖。只有错误会导致用户误解问题前提、领域背景或风险边界时才设置负向权重；普通且后果不典型的背景信息不写入。"],
+];
+
+const tagRows = [
+  ["事实类型", "必填", "主需事实 / 支撑论据 / 举例信息 / 背景信息", "说明这条评分标准来自哪类事实角色。"],
+  ["风险标记", "选填", "一票否决候选", "仅在错误会造成安全、医疗、金融、合规等高风险后果时使用。"],
+];
+
 const structuredRubrics = `[
   { "criterion": "使用两家公司截至 2025-03-31 的最新数据，不得把 PDD 2024-12-31 数据标为最新一期。", "weight": 5, "tag": ["主需事实"] },
   { "criterion": "正确计算阿里巴巴指定口径合计为 3,743.13 亿元。", "weight": 5, "tag": ["主需事实"] },
@@ -135,6 +158,17 @@ function DataTable({ headers, rows, compact = false }: { headers: string[]; rows
   );
 }
 
+function DiagnosisTable({ showExplanation = false }: { showExplanation?: boolean }) {
+  return (
+    <div className="table-wrap diagnosis-table">
+      <table>
+        <thead><tr><th>Response 中的考察点</th><th>事实角色</th><th>核验结论</th>{showExplanation && <th>说明</th>}<th>公开证据</th></tr></thead>
+        <tbody>{diagnosisRows.map((row, index) => <tr key={row[0]}><td>{row[0]}</td><td>{row[1]}</td><td>{row[2]}</td>{showExplanation && <td>{row[3]}</td>}<td>{diagnosisEvidence[index] ? <a href={diagnosisEvidence[index] as string} target="_blank" rel="noreferrer">查看来源 ↗</a> : <span>无需外部来源</span>}</td></tr>)}</tbody>
+      </table>
+    </div>
+  );
+}
+
 function FlowDiagram({ large = false }: { large?: boolean }) {
   return (
     <div className={`flow-diagram ${large ? "is-large" : ""}`} aria-label="项目流程图">
@@ -144,7 +178,7 @@ function FlowDiagram({ large = false }: { large?: boolean }) {
         <div className="flow-step" key={label}><b>0{index + 1}</b><strong>{label}</strong></div>
       ))}
       <i>→</i>
-      <div className="flow-output"><small>输出</small><strong>三类评测资产</strong><span>理想回复 · 加权评分标准 · 结构化训练数据</span></div>
+      <div className="flow-output"><small>输出</small><div><span>理想回复</span><span>加权评分标准</span><span>结构化训练数据</span></div></div>
     </div>
   );
 }
@@ -168,7 +202,7 @@ function FullModal({ modal, onClose }: { modal: ModalKey; onClose: () => void })
           {modal === "history" && <><h2>历史对话</h2><pre>{JSON.stringify(history, null, 2)}</pre></>}
           {modal === "badcase" && <><h2>线上错误回复</h2><p>截至 2025 年 5 月 28 日，两家公司最新可比数据如下：</p>{badcaseParagraphs.slice(0, 2).map((p) => <p key={p}>{p}</p>)}<DataTable headers={["公司", "统计期", "现金及现金等价物", "短期投资 / 其他流动性投资", "合计"]} rows={badcaseRows}/>{badcaseParagraphs.slice(2).map((p) => <p key={p}>{p}</p>)}</>}
           {modal === "stage1" && <><h2>阶段一：案例准入</h2><DataTable headers={["准入条件", "判断", "原因"]} rows={stageOneRows}/><p className="modal-conclusion">准入结论：进入错误案例诊断和后续数据生产。</p></>}
-          {modal === "stage2" && <><h2>阶段二：逐事实诊断</h2><h3>用户意图理解</h3><DataTable headers={["意图维度", "从历史对话恢复出的要求"]} rows={intentRows}/><h3>事实核查</h3><p>回复并非每句话都错。真正的问题是把真实数字放进了错误的时间标签和比较口径，再用正确算术生成错误主结论。</p><DataTable headers={["考察点", "事实角色", "核验结论", "说明"]} rows={diagnosisRows}/></>}
+          {modal === "stage2" && <><h2>阶段二：事实诊断</h2><h3>用户意图理解</h3><p>用户要求以 2025 年 5 月 28 日为截点，只比较两家公司最新财报中的“现金及现金等价物 + 短期投资”，统一换算为人民币亿元，并给出金额、差额和高低结论；不应据此扩展判断偿债或投资能力。</p><h3>事实核查与完整说明</h3><p>回复并非每句话都错。真正的问题是把真实数字放进了错误的时间标签和比较口径，再用正确算术生成错误主结论。</p><DiagnosisTable showExplanation/></>}
           {modal === "stage3" && <><h2>阶段三：参考回复综合</h2><div className="reference-full"><article><h3>参考回复 A</h3><p>两家公司当时最新一期均截至 2025-03-31。阿里合计 3,743.13 亿元，PDD 合计 3,645.01 亿元；阿里高约 98.12 亿元、约高 2.8%，两者规模接近。</p><DataTable headers={["考察点", "核验"]} rows={referenceARows}/></article><article><h3>参考回复 B</h3><p>先锁定口径和时间。阿里在 5 月 14 日、PDD 在 5 月 27 日已披露一季度数据；阿里合计 3,743.13 亿元，PDD 合计 3,645.01 亿元，扩展流动性指标不计入。</p><DataTable headers={["考察点", "核验"]} rows={referenceBRows}/></article></div><button className="inline-action" onClick={() => location.hash = "facts"}>事实总表在主页面另行提供完整视图</button></>}
           {modal === "facts" && <><h2>三份回复的事实合并、去重与查漏补缺</h2><p>以三份回复抽取并去重后的事实为唯一索引，保留线上回复中正确、错误、遗漏及“事实正确但使用错误”的全部情况。</p><DataTable headers={["具体事实", "事实角色", "线上回复情况", "涉及回复", "最终权衡口径", "理想回复表达", "评分建议"]} rows={mergedFacts}/></>}
           {modal === "stage4" && <><h2>阶段四：评估资产生成</h2><h3>理想回复</h3><DataTable headers={["公司", "统计期", "现金及现金等价物", "短期投资", "合计"]} rows={[["阿里巴巴", "2025-03-31", "1,454.87 亿元", "2,288.26 亿元", "3,743.13 亿元"], ["PDD Holdings", "2025-03-31", "701.26 亿元", "2,943.75 亿元", "3,645.01 亿元"]]}/><p>按统一口径，阿里高约 98.12 亿元、约高 2.7%，两者规模接近。阿里的扩展指标包含其他 treasury investments，因此未计入。</p><h3>加权评分标准</h3><DataTable headers={["权重", "评分条件", "事实角色", "策略"]} rows={weightedRubrics}/><h3>结构化评分标准</h3><pre>{structuredRubrics}</pre></>}
@@ -182,7 +216,6 @@ export default function Home() {
   const [activeStage, setActiveStage] = useState(1);
   const [modal, setModal] = useState<ModalKey>(null);
   const [asset, setAsset] = useState<AssetKey>("answer");
-  const [activeRole, setActiveRole] = useState(0);
 
   useEffect(() => {
     const nodes = Array.from(document.querySelectorAll<HTMLElement>("[data-stage]"));
@@ -194,7 +227,6 @@ export default function Home() {
     return () => observer.disconnect();
   }, []);
 
-  const role = useMemo(() => roleMap[activeRole], [activeRole]);
   const open = (key: ModalKey) => setModal(key);
 
   return (
@@ -206,7 +238,6 @@ export default function Home() {
 
       <header className="hero section-shell">
         <div className="hero-copy">
-          <p className="eyebrow">AI 产品 · 模型评测</p>
           <h1>大模型事实性 Badcase<br/>评测与训练数据生产</h1>
           <p className="lead">针对线上回复中的真实性与时效性问题，搭建自动化评测链路，完成事实核验、参考回复综合，并生成理想回复与加权评分标准。</p>
           <a className="primary-link" href="#background">查看项目内容 <span>↓</span></a>
@@ -216,10 +247,9 @@ export default function Home() {
 
       <section className="problem" id="background">
         <div className="section-shell problem-grid">
-          <div><p className="section-index">01 · 背景</p><h2>表达流畅，<br/>不代表事实准确</h2></div>
-          <div className="problem-copy"><p>大模型已经能够生成结构完整、表达流畅的回复，但在真实使用中仍可能引用错误数据、沿用过期信息、混淆统计口径，或基于有限证据得出过度结论。</p><p>真实性与时效性问题往往隐藏在看似可信的表达中。一条 Badcase 也很少是整段全部错误，而是正确、错误、过期和遗漏信息混在一起。</p><p>因此，需要把回复拆到事实层级逐项核验，定位模型问题，形成可执行的评分标准，并进一步生成 SFT / RL 训练数据。</p></div>
+          <div><p className="section-index">01 · 背景</p></div>
+          <div className="problem-copy"><p>大模型已经能够生成结构完整、表达流畅的回复，但在真实使用中仍可能引用错误数据、沿用过期信息、混淆统计口径，或基于有限证据得出过度结论。</p><p>真实性与时效性问题往往隐藏在看似可信的表达中。一条 Badcase 也很少是整段全部错误，而是正确、错误、过期和遗漏信息混在一起。</p><p className="issue-intro">这类问题可以进一步拆分为：</p><div className="issue-list" aria-label="真实性问题分类"><div><span>01</span><b>事实错误</b><p>数据、主体或结论与可靠来源不一致</p></div><div><span>02</span><b>信息过期</b><p>使用旧数据作为当前信息回答</p></div><div><span>03</span><b>口径混用</b><p>把定义不同的数据放在一起比较</p></div><div><span>04</span><b>关键遗漏</b><p>缺少回答问题所必需的事实</p></div><div><span>05</span><b>无依据推断</b><p>结论超出已有事实的支持范围</p></div></div><p>将回复拆到事实层级逐项核验，可以定位模型具体在哪个事实、口径或推理环节出错，形成可执行的评分标准，并进一步生成 SFT / RL 训练数据。</p></div>
         </div>
-        <div className="section-shell issue-list" aria-label="真实性问题分类"><div><span>01</span><b>事实错误</b><p>数据、主体或结论与可靠来源不一致</p></div><div><span>02</span><b>信息过期</b><p>使用旧数据作为当前信息回答</p></div><div><span>03</span><b>口径混用</b><p>把定义不同的数据放在一起比较</p></div><div><span>04</span><b>关键遗漏</b><p>缺少回答问题所必需的事实</p></div><div><span>05</span><b>无依据推断</b><p>结论超出已有事实的支持范围</p></div></div>
       </section>
 
       <section className="overview section-shell" id="overview">
@@ -228,9 +258,9 @@ export default function Home() {
       </section>
 
       <section className="case-start section-shell" id="case-start">
-        <div className="section-head"><div><p className="section-index">03 · 线上案例</p><h2>比较两家公司的现金及短期投资规模</h2></div><p>用户要求使用最新披露数据和统一口径。线上回复结构完整，但数据时点与统计口径并不一致。</p></div>
+        <div className="section-head case-heading"><div><p className="section-index">03 · 线上案例</p></div></div>
         <details className="case-fold">
-          <summary><div><span>线上案例</span><strong>阿里巴巴与 PDD Holdings 现金规模比较</strong><p>展开查看历史对话、用户最新 Prompt 与线上回复</p></div><b>展开 ＋</b></summary>
+          <summary><div><span>案例内容</span><strong>阿里巴巴与 PDD Holdings 现金规模比较</strong><p>包含完整历史对话、用户最新 Prompt 与线上回复</p></div><b><span>展开案例</span><i>↓</i></b></summary>
           <div className="case-details">
             <article className="code-card history-card"><header><span>历史对话 · 6 轮</span><button onClick={() => open("history")}>完整查看 ↗</button></header><pre>{JSON.stringify(history, null, 2)}</pre></article>
             <article className="prompt-card"><span>用户最新 Prompt</span><p>{prompt}</p></article>
@@ -246,19 +276,19 @@ export default function Home() {
           <article className={`process-stage ${activeStage === 1 ? "is-active" : ""}`} data-stage="1">
             <div className="framework-card"><small>阶段一</small><h3>案例准入</h3><p>判断案例是否值得进入后续深度评估和数据生产。</p><div className="design-note"><b>设计考量</b>先过滤不可核验、缺少上下文或纠正价值低的样本，避免噪声消耗后续成本。</div></div>
             <div className="stage-spine"><span>01</span></div>
-            <div className="case-output-card"><div className="output-label">本案例产出</div><div className="qualification-score"><strong>6 / 6</strong><span>准入条件全部通过</span></div><div className="pass-list">{stageOneRows.map((row) => <span key={row[0]}>✓ {row[0]}</span>)}</div><p className="output-conclusion">准入结论：进入错误案例诊断和后续数据生产。</p><button className="view-full" onClick={() => open("stage1")}>查看完整准入判断 ↗</button></div>
+            <div className="case-output-card"><div className="output-label">本案例准入结果</div><DataTable headers={["准入条件", "判断", "原因"]} rows={stageOneRows}/><p className="output-conclusion">六项条件全部通过。该案例进入事实诊断和后续数据生产。</p></div>
           </article>
 
           <article className={`process-stage ${activeStage === 2 ? "is-active" : ""}`} data-stage="2">
             <div className="framework-card"><small>阶段二</small><h3>事实诊断</h3><p>先从多轮对话恢复真实意图，再逐个判断线上回复中的事实。</p><div className="design-note"><b>设计考量</b>事实核查不能从终轮问题的孤立关键词开始；口径、时间和回答边界都来自完整历史对话。</div></div>
             <div className="stage-spine"><span>02</span></div>
             <div className="case-output-card stage-two">
-              <div className="output-label">4.1 用户意图理解</div>
-              <div className="intent-grid">{intentRows.map((row) => <div key={row[0]}><span>{row[0]}</span><p>{row[1]}</p></div>)}</div>
-              <div className="diagnosis-divider"><span>4.2 事实核查</span><b>12 个事实点</b></div>
+              <div className="output-label">用户意图理解</div>
+              <p className="intent-conclusion">用户要求以 2025 年 5 月 28 日为截点，只比较两家公司最新财报中的“现金及现金等价物 + 短期投资”，统一换算为人民币亿元，并给出金额、差额和高低结论；不应据此扩展判断偿债或投资能力。</p>
+              <div className="diagnosis-divider"><span>事实核查</span><b>12 个事实点</b></div>
               <p className="diagnosis-summary">局部事实真实，但真实数字被放进错误的时间标签和比较口径中，再由正确算术生成被显著放大的主结论。</p>
-              <div className="status-examples"><span className="status good">正确 · 阿里现金 1,454.87 亿</span><span className="status warn">事实正确，使用错误 · 5,971.32 亿</span><span className="status bad">错误 · PDD 使用旧季度数据</span></div>
-              <button className="view-full" onClick={() => open("stage2")}>查看完整意图与事实核查 ↗</button>
+              <DiagnosisTable/>
+              <button className="view-full evidence-action" onClick={() => open("stage2")}>查看每个事实点的完整说明与证据 ↗</button>
             </div>
           </article>
 
@@ -289,18 +319,13 @@ export default function Home() {
 
       <section className="design-value" id="design-value">
         <div className="section-shell">
-          <div className="section-head"><div><p className="section-index">05 · 链路的核心设计</p><h2>分层事实映射与加权评分标准</h2></div><p>四阶段说明完整链路如何运行；这一部分只解释事实角色如何影响覆盖要求、评分方式与权重。</p></div>
-          <div className="tension-grid"><article><span>01</span><h3>通用性 vs. 可执行性</h3><p>只写“准确、完整、清晰”无法约束关键数字；把所有细节写入又会过拟合单个回复。</p></article><article><span>02</span><h3>事实正确 vs. 必须覆盖</h3><p>一条事实即使正确，也不代表优质回复必须主动写出；答案本体和背景补充不能同权。</p></article><article><span>03</span><h3>当前错误 vs. 潜在后果</h3><p>权重不只看线上回复这次是否答错，还要看优质回复是否应覆盖，以及答错会造成什么后果。</p></article></div>
+          <div className="section-head design-heading"><div><p className="section-index">05 · 链路的核心设计</p><h2>分层事实映射与加权评分标准</h2></div></div>
+          <div className="design-intro"><p>早期评分标准容易停留在“准确、完整、清晰”等抽象要求上，没有显性规定需要核对哪些关键事实、使用什么口径，也难以判断新回复是否真正修复了原来的真实性错误。</p><p>这条链路先把三份回复中的事实合并成完整索引，再判断每个事实在答案结构中的角色。事实角色不是判断真假，而是判断这条事实是答案本体、支撑结论的论据、额外举例，还是背景补充；随后再决定它应以什么方式进入评分标准。</p><h3>设计时需要处理的三组权衡</h3></div>
+          <div className="tension-grid"><article><span>01</span><h3>评分标准需要多具体？</h3><p>过于宽泛就约束不了关键数字、时间和口径；把所有细节写入又会过度拟合单个回复。</p></article><article><span>02</span><h3>正确事实是否必须出现？</h3><p>一条事实即使正确，也不代表优质回复必须主动写出。答案本体、关键论据与背景补充不能同权。</p></article><article><span>03</span><h3>权重依据什么确定？</h3><p>既要看优质回复是否必须主动覆盖，也要看该事实一旦出错会造成什么后果。</p></article></div>
 
-          <div className="mapping-lab">
-            <div className="role-selector" role="tablist" aria-label="事实角色选择">{roleMap.map((item, i) => <button key={item.role} aria-selected={activeRole === i} onClick={() => setActiveRole(i)}><span>0{i + 1}</span>{item.role}</button>)}</div>
-            <div className="mapping-result" role="tabpanel">
-              <div className="map-flow"><div><span>事实角色</span><strong>{role.role}</strong></div><i>→</i><div><span>覆盖要求</span><strong>{role.cover}</strong></div><i>→</i><div><span>消费方式</span><strong>{role.policy}</strong></div><i>→</i><div><span>权重区间</span><strong>{role.weight}</strong></div></div>
-              <p>{role.note}</p>
-            </div>
-          </div>
-
-          <div className="value-statement"><p>这套映射把阶段三形成的事实全集，转化为阶段四中<strong>自包含、可执行、可检查</strong>的评分标准。</p><div><span>不是</span>对答案风格的抽象要求</div><i>→</i><div><span>而是</span>明确哪些事实必须出现、哪些口径必须正确、哪些扩展不值得奖励、哪些错误必须扣分</div></div>
+          <section className="matrix-section"><h3>1. 事实角色解释</h3><p>先判断事实在答案结构中是否重要，再决定它是否需要进入评分标准。</p><DataTable headers={["事实角色", "定义", "判断重点", "本案例示例"]} rows={factRoleRows}/></section>
+          <section className="matrix-section"><h3>2. 判断矩阵</h3><p>每类事实再根据“优质回复是否应主动覆盖”和“如果写错会造成什么后果”，选择正向标准、负向雷区或不写入，并确定具体权重。</p><div className="policy-notes"><p><b>正向标准：</b>奖励优质回复应该主动覆盖的内容。答对得分，没答得 0，答错由后续判分逻辑扣分。</p><p><b>负向雷区：</b>不要求优质回复主动覆盖，但模型一旦主动扩展并写错，就按错误后果扣分。</p><p><b>不写入：</b>不要求主动覆盖，且即使写错也不典型、不严重或不可泛化的内容，不进入 Rubrics。</p></div><DataTable headers={["事实类型", "判断条件", "Rubrics 消费方式", "建议权重", "落地说明"]} rows={judgmentMatrixRows}/></section>
+          <section className="matrix-section"><h3>3. Tag 字段</h3><p>Tag 为算法侧提供稳定、可解析的元数据，由事实类型和可选风险标记组成。</p><DataTable headers={["Tag 组成", "是否必填", "可选值", "说明"]} rows={tagRows}/></section>
         </div>
       </section>
 

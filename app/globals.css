@@ -321,3 +321,101 @@ main { overflow: clip; }
   html { scroll-behavior: auto; }
   .process-stage, .case-output-card, .stage-spine span { transition: none; }
 }
+
+/* v3: strengthen reading hierarchy and remove decorative-only structures */
+body { font-size: 16px; }
+.section-index { margin-bottom: 20px; font-size: 15px; letter-spacing: .07em; }
+.brand span, .hero-panel > p, .flow-diagram small, .flow-diagram b,
+.framework-card small, .output-label, .diagnosis-divider span,
+.reference-cards span, .master-table-card > span, .impact-grid span,
+.modal > header span { font-size: 13px; }
+.navlinks, .hero-panel dt, .primary-link, .view-full, .table-wrap td,
+.reference-cards p, .master-table-card p, .fact-legend, .rubric-list p,
+.footer > div { font-size: 13px; }
+.table-wrap th { font-size: 12px; }
+.problem-grid { grid-template-columns: 190px minmax(0, 1fr); gap: 72px; }
+.problem-copy { font-size: 16px; }
+.issue-intro { margin-top: 30px !important; color: var(--navy); font-weight: 700; }
+.problem-copy .issue-list { grid-template-columns: 1fr 1fr; margin: 18px 0 30px; border-top: 1px solid var(--line); border-bottom: 0; }
+.problem-copy .issue-list > div { min-height: 0; display: grid; grid-template-columns: 34px 108px 1fr; gap: 10px; align-items: baseline; padding: 15px 0; border-right: 0; border-bottom: 1px solid var(--line); }
+.problem-copy .issue-list > div:nth-child(odd) { padding-right: 24px; }
+.problem-copy .issue-list > div:nth-child(even) { padding-left: 24px; border-left: 1px solid var(--line); }
+.problem-copy .issue-list span, .problem-copy .issue-list b, .problem-copy .issue-list p { margin: 0; }
+.problem-copy .issue-list span { font-size: 12px; }
+.problem-copy .issue-list b { font-size: 15px; }
+.problem-copy .issue-list p { font-size: 13px; }
+
+.flow-diagram { grid-template-columns: 1.4fr 28px repeat(4, 1fr) 28px 1.7fr; gap: 9px; padding: 48px 28px 58px; }
+.flow-input, .flow-output { border-radius: 22px; }
+.flow-step { min-height: 104px; border-radius: 18px; align-items: center; text-align: center; }
+.flow-step b { width: auto; border: 0; padding: 0; }
+.flow-diagram strong { font-size: 15px; }
+.flow-diagram > i { font-size: 19px; }
+.flow-output { align-items: stretch; }
+.flow-output > div { display: grid; gap: 7px; margin-top: 10px; }
+.flow-output > div span { margin: 0; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: rgba(201,156,174,.13); color: var(--navy); font-size: 12px; font-weight: 680; text-align: center; }
+.enlarge-hint { font-size: 13px; }
+
+.case-heading { display: block; margin-bottom: 24px; }
+.case-fold summary { min-height: 128px; }
+.case-fold summary span { font-size: 13px; }
+.case-fold summary strong { font-size: 18px; }
+.case-fold summary p { font-size: 14px; }
+.case-fold summary > b { min-width: auto; display: flex; align-items: center; gap: 12px; padding: 12px 18px; border-radius: 999px; background: var(--navy); color: var(--card); text-align: left; }
+.case-fold summary > b span { color: var(--card); font-size: 13px; letter-spacing: 0; }
+.case-fold summary > b i { color: var(--card); font-size: 14px; font-style: normal; }
+.case-fold[open] summary > b { font-size: inherit; }
+.case-fold[open] summary > b::after { content: none; }
+.case-fold[open] summary > b span { font-size: 0; }
+.case-fold[open] summary > b span::after { content: "收起案例"; font-size: 13px; }
+.case-fold[open] summary > b i { transform: rotate(180deg); }
+
+.process-stage:first-child .table-wrap table { min-width: 0; table-layout: fixed; }
+.process-stage:first-child .table-wrap th:nth-child(1) { width: 27%; }
+.process-stage:first-child .table-wrap th:nth-child(2) { width: 14%; }
+.process-stage:first-child .table-wrap td { min-width: 0; }
+.intent-conclusion { margin: 0; padding: 17px 19px; border-left: 2px solid var(--pink); background: rgba(201,156,174,.13); color: #515261; font-size: 14px; line-height: 1.78; }
+.diagnosis-table { margin-top: 18px; }
+.diagnosis-table table { min-width: 830px; }
+.diagnosis-table th:nth-child(1) { width: 42%; }
+.diagnosis-table th:nth-child(2) { width: 14%; }
+.diagnosis-table th:nth-child(3) { width: 20%; }
+.diagnosis-table td { min-width: 110px; }
+.diagnosis-table td:first-child { min-width: 310px; }
+.diagnosis-table a { color: var(--blue); font-weight: 700; white-space: nowrap; }
+.diagnosis-table a:hover { color: var(--navy); text-decoration: underline; }
+.diagnosis-table td:last-child span { color: var(--muted); white-space: nowrap; }
+.evidence-action { margin-top: 18px; }
+
+.design-heading { grid-template-columns: 1fr; }
+.design-intro { max-width: 960px; margin: -12px 0 42px; color: #555665; font-size: 16px; line-height: 1.85; }
+.design-intro p { margin: 0 0 18px; }
+.design-intro h3 { margin: 38px 0 0; color: var(--navy); font-size: 21px; }
+.tension-grid article { min-height: 220px; }
+.tension-grid h3 { margin-top: 34px; font-size: 19px; }
+.matrix-section { margin-top: 78px; }
+.matrix-section > h3 { margin: 0 0 12px; color: var(--navy); font-size: 24px; }
+.matrix-section > p { max-width: 900px; margin: 0 0 24px; color: var(--muted); font-size: 15px; line-height: 1.75; }
+.matrix-section .table-wrap table { min-width: 1080px; }
+.matrix-section .table-wrap th, .matrix-section .table-wrap td { padding: 16px; }
+.matrix-section .table-wrap td { min-width: 175px; font-size: 13px; line-height: 1.72; }
+.matrix-section .table-wrap td:first-child { min-width: 110px; color: var(--navy); font-weight: 700; }
+.policy-notes { margin: 0 0 24px; padding: 20px 22px; border-left: 3px solid var(--pink); background: rgba(201,156,174,.12); }
+.policy-notes p { margin: 0 0 10px; color: #535462; font-size: 14px; line-height: 1.7; }
+.policy-notes p:last-child { margin-bottom: 0; }
+.policy-notes b { color: var(--navy); }
+
+@media (max-width: 1000px) {
+  .problem-grid { grid-template-columns: 1fr; gap: 18px; }
+  .flow-diagram { grid-template-columns: 1fr; }
+  .problem-copy .issue-list { grid-template-columns: 1fr; }
+  .problem-copy .issue-list > div:nth-child(odd), .problem-copy .issue-list > div:nth-child(even) { padding-left: 0; padding-right: 0; border-left: 0; }
+}
+
+@media (max-width: 640px) {
+  .section-index { font-size: 14px; }
+  .problem-copy .issue-list > div { grid-template-columns: 30px 98px 1fr; }
+  .case-fold summary > b { padding: 11px 14px; }
+  .case-fold summary > b span { display: none; }
+  .matrix-section { margin-top: 58px; }
+}
