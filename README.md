@@ -1,11 +1,17 @@
 # 大模型真实准确性 Badcase 评测与训练数据生产 Agent
 
-一个面向大模型真实性与时效性问题的案例作品集，展示如何从线上 Badcase 出发，完成事实核验、参考回复综合，并生成理想回复、加权评分标准和结构化训练数据。
+一个脱敏后的交互式 Portfolio Case，展示如何从线上 Badcase 出发，完成事实核验、参考回复综合，并生成理想回复、加权评分标准和结构化训练数据。
 
 ## 在线查看
 
-- 当前预览：[Sites 在线版本](https://fact-aware-badcase-portfolio.zyzouye900770.chatgpt.site)
-- GitHub Pages：仓库首次发布后可通过 `https://hoqizz.github.io/agent-evaluation-portfolio/` 访问
+- [Sites 在线版本](https://fact-aware-badcase-portfolio.zyzouye900770.chatgpt.site)
+- [GitHub Pages 在线版本](https://hoqizz.github.io/agent-evaluation-portfolio/)
+
+## 展示说明
+
+本仓库为脱敏后的交互式 Portfolio Case，通过合成案例展示真实业务中的评测方法与 Agent 工作流。
+
+仓库仅包含作品集网站的前端实现，不包含内部生产代码、Prompt、模型配置与原始数据。页面中的案例对话和线上回复均为合成内容，相关事实与计算结果来自公开资料。
 
 ## 项目背景
 
@@ -55,13 +61,16 @@
 - **周均产量**：1 万+ 条 SFT / RL 数据
 - **应用效果**：Seed2.1 Pro 真实准确性 RL 分数由 64.1 提升至 69.6
 
-## 技术栈
+## 作品集实现
 
-- Next.js / React / TypeScript
-- Vinext / Cloudflare Workers
-- GitHub Actions / GitHub Pages
+- **业务工作流展示**：基于 LangGraph Agent 链路抽象
+- **交互式案例网站**：Next.js / React / TypeScript
+- **在线部署**：Vinext / Cloudflare Workers
+- **静态发布**：GitHub Actions / GitHub Pages
 
-## 本地运行
+## 本地运行作品集网站
+
+以下命令仅用于运行本仓库中的交互式 Portfolio Case，不会启动内部生产 Agent。
 
 需要 Node.js 22.13 或更高版本。
 
@@ -116,9 +125,3 @@ public/                 图片与静态资源
 tests/                  渲染结果检查
 next.config.ts          常规构建与 Pages 构建配置
 ```
-
-## 维护建议
-
-- GitHub 仓库作为源码和版本记录的长期存档；
-- GitHub Pages 或个人域名作为对外访问入口；
-- 重要文案先在内容草稿中确认，再同步到网页，避免展示结构和内容逻辑相互干扰。
